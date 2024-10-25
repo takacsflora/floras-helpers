@@ -11,6 +11,8 @@ setup(
     install_requires=[                     # List of dependencies
         'numpy>=1.19.2',
         'matplotlib>=3.3.0',
+        'pyperclip>=1.9.0',
+        'scipy'
     ],
     classifiers=[                          # Optional metadata for PyPI
         'Programming Language :: Python :: 3',
