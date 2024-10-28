@@ -53,3 +53,4 @@ def copy_svg_to_clipboard(fig):
     pyperclip.copy(svg_code)
 
     print("SVG content copied to clipboard!")
+
