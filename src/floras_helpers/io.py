@@ -1,6 +1,8 @@
 from pathlib import Path 
 import numpy as np
 import json
+import datetime
+import re
 
 class Bunch(dict):
     """ taken from iblutil
@@ -49,9 +51,20 @@ def save_dict_to_json(dict,path):
     errfile.write(message)
     errfile.close()
 
-
-
 def get_subfolders(folder_path):
     folder = Path(folder_path)
     subfolders = [subfolder for subfolder in folder.iterdir() if subfolder.is_dir()]
     return subfolders
+
+def get_current_timestamp():
+    return datetime.now().strftime("%Y-%m-%d")
+
+def get_latest_file(my_path,filename_type = None):
+    """
+    function to get the latest file of within a folder
+    """
+    summaries = list(my_path.glob(f'{filename_type}*.csv')) 
+    timestamp_pattern = r"\d{4}-\d{2}-\d{2}"
+    dates = [re.findall(timestamp_pattern,s.stem)[0] for s in summaries]
+    dates = np.array([datetime.strptime(d, "%Y-%m-%d") for d in dates])
+    return summaries[np.argmax(dates)]
