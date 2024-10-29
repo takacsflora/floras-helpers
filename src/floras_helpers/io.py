@@ -1,7 +1,7 @@
 from pathlib import Path 
 import numpy as np
 import json
-import datetime
+from datetime import datetime
 import re
 
 class Bunch(dict):
