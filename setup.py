@@ -5,7 +5,7 @@ setup(
     version='0.1.0',                # Initial release version
     description='A collection of utility functions for plotting, spike data, and video processing',
     author='Flora Takacs',            
-    url='https://github.com/username/floras-helpers',  # Link to your repository (optional)
+    url='https://github.com/takacsflora/floras-helpers',  # Link to your repository (optional)
     packages=find_packages(where="src"),   # Automatically find packages in the "src" folder
     package_dir={'': 'src'},               # Define the source code directory
     install_requires=[                     # List of dependencies
