@@ -16,7 +16,7 @@ import hashlib
 from tqdm import tqdm
 import nrrd
 
-from Analysis.pyutils import hashfile
+import hashfile
 
 from src.floras_helpers.numerical import ismember
 from regions import BrainRegions
