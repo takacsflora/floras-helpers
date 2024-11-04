@@ -6,8 +6,9 @@ class anatomy_plotter():
 
     """
     def __init__(self): 
-        from Processing.pyhist.helpers.atlas import AllenAtlas
+        from hist.atlas import AllenAtlas
         self.atlas = AllenAtlas(25)
+
     def plot_anat_canvas(self,ax,coord,axis='dv'):
         
         # just need some realistic numbers so that the ccf2xyz conversion works
