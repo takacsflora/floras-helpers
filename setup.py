@@ -13,7 +13,10 @@ setup(
         'matplotlib>=3.3.0',
         'pyperclip>=1.9.0',
         'scipy', 
-        'scikit-learn'
+        'scikit-learn',
+        'pynrrd',
+        'tqdm',
+        'pandas'
     ],
     classifiers=[                          # Optional metadata for PyPI
         'Programming Language :: Python :: 3',

@@ -4,6 +4,7 @@ import json
 from datetime import datetime
 import re
 
+
 class Bunch(dict):
     """ taken from iblutil
     A subclass of dictionary with an additional JavaSrcipt style dot syntax."""
@@ -40,8 +41,7 @@ class Bunch(dict):
         if not Path(npz_file).exists():
             raise FileNotFoundError(f"{npz_file}")
         return Bunch(np.load(npz_file))
-    
-    
+        
 def save_dict_to_json(dict,path):
     """
     util function to save dictionaries to json

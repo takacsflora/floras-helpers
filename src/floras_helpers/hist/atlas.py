@@ -14,12 +14,12 @@ import urllib.parse
 from urllib.error import HTTPError
 import hashlib
 from tqdm import tqdm
-
-from Analysis.pyutils import hashfile
 import nrrd
 
-from Analysis.pyutils.numerical import ismember
-from Processing.pyhist.helpers.regions import BrainRegions
+from Analysis.pyutils import hashfile
+
+from src.floras_helpers.numerical import ismember
+from regions import BrainRegions
 
 _logger = logging.getLogger(__name__)
 ALLEN_CCF_LANDMARKS_MLAPDV_UM = {'bregma': np.array([5739, 5400, 332])}
