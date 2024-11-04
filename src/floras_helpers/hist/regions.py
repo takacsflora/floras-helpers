@@ -4,8 +4,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from src.floras_helpers.io import Bunch
-from src.floras_helpers.numerical import ismember
+from floras_helpers.io import Bunch
+from floras_helpers.numerical import ismember
 
 _logger = logging.getLogger(__name__)
 # 'Beryl' is the name given to an atlas containing a subset of the most relevant allen annotations
