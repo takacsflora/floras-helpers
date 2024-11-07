@@ -11,12 +11,12 @@ setup(
     install_requires=[                     # List of dependencies
         'numpy>=1.19.2',
         'matplotlib>=3.3.0',
-        'pyperclip==1.9.0',
+        'pyperclip>=1.9.0',
         'scipy', 
         'scikit-learn',
         'pynrrd',
         'tqdm',
-        'pandas'
+        'pandas==1.3.5'
     ],
     include_package_data=True,
     classifiers=[                          # Optional metadata for PyPI
