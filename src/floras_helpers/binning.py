@@ -3,7 +3,7 @@
 
 import numpy as np
 from scipy.signal import convolve, gaussian
-from io import Bunch
+from .io import Bunch
 
 def bincount2D(x, y, xbin=0, ybin=0, xlim=None, ylim=None, weights=None, xsmoothing=0):
     """
