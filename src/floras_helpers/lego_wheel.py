@@ -1,173 +1,97 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.signal as signal
-from sklearn.cluster import KMeans
 
-from .plotting import off_axes
-from .numerical import schmitt
+from io import Bunch
 
-
-def get_move_raster(on_times,camt,camv,pre_time=.1,post_time=1,bin_size=.005,sortPC1=False,sortAmp=False,baseline_subtract=True,ax=None,to_plot=False):
+def plot_single_trace(ev,trial_index,blfrom='first',align_time = None,ax=None,**plotkwargs):
     """
-    Function to rasterise behavioral measures (camera/wheel) that are 
-    sampled at low frequency and thus need to be interpolated 
+    function to plot single wheel traces with their own timings. But I think the wheel_raster func is better
 
-    Parameters: 
+    Parameters:
     -----------
-    on_times: list 
-        instances of onsets (same scale as camt)
-    camt: np.ndarray 
-        camera timepoints (same length as camv)
-    camv: np.ndarray
-        camera values 
-    pre_time: float
-        time prior to event 
-    post_time: float 
-        time taken after event for the raster 
-    bin_size: float 
-    sortPC1: bool
-        whether to sort the raster based on how much each trial weighs on PC1, output is descending ?
-    sortAmp: bool
-        whether to sort the raster based on amplitude of movement after the event (specified by on_times). Output is ascending
-    baseline_subtract: bool 
-    to_plot: bool 
-        can plot the raster output directly 
-    ax: matplotlib.pyplot.axis
-        can pass down on which axis to plot the raster output (in case of subplot)
+    ev: Bunch
+    trial_index: float 
     
+    blfrom: str
+        the period that we define as baseline. 
+        Either before first movement or choice movement ('first'/'choice')
     
-    Returns:
-    --------
-    raster: np.ndarray
-        len(on_times) x time 
-    bin_range: np.ndarray
-        timepoints at of the raster 
-    sort_idx: 
-        indices over trials by which raster was sorted 
-
-    todo: 
-        return mean/mad and bunch output
-
-    """
-    # If requested, input on_times in a sorted fashion
-    on_times = on_times[:,np.newaxis]
-    bin_range = np.arange(-pre_time,post_time,bin_size)
-    zero_bin_idx = np.argmin(np.abs(bin_range))
-    raster = np.interp((on_times+bin_range),np.ravel(camt),np.ravel(camv))
-
-    sort_idx = None
-
-    if baseline_subtract: 
-        baseline = raster[:,zero_bin_idx][:,np.newaxis]
-        baseline = np.tile(baseline,bin_range.size)
-        raster = raster - baseline 
-
-    if sortPC1:
-        mu,_,_ = np.linalg.svd(raster[zero_bin_idx:,:],full_matrices=False)
-        sort_idx = np.argsort(np.abs(mu[:,0]))
-        raster = raster[sort_idx,:]
-
-    if sortAmp:
-        sort_idx=np.argsort(raster[:,zero_bin_idx:].mean(axis=1))
-        raster = raster[sort_idx,:]
-
-    if to_plot:
-        if not ax:
-            fig,ax = plt.subplots(1,1)
-        movement_values = np.median(np.ravel(raster))
-        print([movement_values*.65, movement_values*3])
-        ax.matshow(np.repeat(raster,repeats=10,axis=0),aspect='auto',cmap='Greys',norm=LogNorm(vmin=movement_values*.65, vmax=movement_values*3))
-        #ax.matshow(raster,aspect='auto',cmap=cm.gray_r, norm=LogNorm(vmin=2500, vmax=12500))
-        #ax.matshow(raster, cmap=cm.gray_r,aspect='auto')
-        #ax.axvline(zero_bin_idx,color = 'r')
-        ax.plot(zero_bin_idx,-2,marker='v',markersize=12,color='blue')
-        off_axes(ax)
-
-    return raster,bin_range,sort_idx
-
-
-def digitise_motion_energy(camt,camv,plot_sample=False,min_off_time=.01,min_on_time =.01):
-    """
-    converts camera motion energy signal to digitised motion on/off
-    process: 
-        1. lowpass (<10Hz) 7th order Butterworth
-        2. kmeans to determine min threshold 
-        3. drop periods that don't last min_period time (s)
-
-    Parameters: 
-    -----------
-    camt: numpy ndarray
-    camv: numpy ndarray
-    plot_sample: bool
-    min_period_time: float64
-
-    Returns: 
-    -------
-    (on_times,off_times,digitised) : (numpy ndarrays)
-
+    align_time: str
+        what to align the wheel times to
 
     """
 
-    fs = 1/np.diff(camt).mean()
-    fc = 10  # frequency cutoff
-    w  = fc / (fs/2)
-    b,a = signal.butter(7,w,'low')
-    camv_filt = signal.filtfilt(b, a, camv)
+    if 'choice' in blfrom: 
+        start_move_idx = np.where(ev.timeline_wheelTime[trial_index]==ev.timeline_choiceMoveOn[trial_index])[0][0]
+    elif 'first' in blfrom:
+        start_move_idx = np.where(ev.timeline_wheelTime[trial_index]==ev.timeline_firstMoveOn[trial_index])[0][0]
 
-    k_clus  = KMeans(n_clusters=5).fit(camv[:,np.newaxis])
-    # remove clusters with less than 2% points
-    keep_idx = [(k_clus.labels_==clusIdx).mean()>.02 for clusIdx in np.unique(k_clus.labels_)]
-    # get the center of each of the remainder of the clusters. 
-    thresh = k_clus.cluster_centers_[keep_idx,0]
-    thresh = np.min(thresh)#+np.ptp(thresh)*0.02 # determine the minimum thershold for crossing
-    std_low = np.std(camv_filt[k_clus.labels_==np.argmin(thresh)])
-    low_up_thr = np.array([thresh,thresh+std_low])
-    # schmitt trigger of the trace
-    camv_thr,_ = schmitt(camv,low_up_thr)
+    baseline = ev.timeline_wheelValue[trial_index][start_move_idx]
 
-    on_times = camt[1:][(camv_thr[:-1]==-1) & (camv_thr[1:]==1)]        
-    off_times = camt[1:][(camv_thr[:-1]==1) & (camv_thr[1:]==-1)]
+    if align_time:
+        if 'aud'  in align_time:
+            bl_time =  ev.timeline_audPeriodOn[trial_index]
+        if 'laser' in align_time:
+            bl_time = ev.timeline_laserOn_rampStart[trial_index]
+    else: 
+        align_time = ev.timeline_wheelTime[trial_index][start_move_idx]
 
-    # previous version was detecting simple thrshold crossings...
-    # camv_thr = (camv_filt>thresh).astype('int')
-    # df_camv_thr = np.diff(camv_thr)
-    # df_camv_thr = np.insert(df_camv_thr,0,df_camv_thr[0])
-    # on_times = camt[df_camv_thr>0]
-    # off_times = camt[df_camv_thr<0]
+    if not ax: 
+        _,ax = plt.subplots(1,1)
+    
+    ax.plot(ev.timeline_wheelTime[trial_index]-bl_time,ev.timeline_wheelValue[trial_index]-baseline,**plotkwargs)
 
-    while on_times.size!=off_times.size: 
-        # if stating in on state
-        if camv_thr[0]>=0: 
-            on_times = np.insert(on_times,0,camt[0])
-        elif camv_thr[-1]>0: 
-            off_times = np.insert(off_times,0,camt[-1])
+def wheel_raster(ev,selected_trials='all',align_type=None,t=None,t_bin=0.01, bl_subtract=True):
+    """
+    Function to create a rasterised version of the wheel deg per trial
+
+    Parameters:
+    ----------- 
+    ev: Bunch 
+        the input data requred, i.e. the event structure. 
+        Could make it more generic 
+
+    selected_trials: bool/inds
+        whether a trial is inluded or not
+        If passing inds, can be used for sorting
+    
+
+    """    
+    if 'all' in selected_trials: 
+        selected_trials = (np.ones(ev.is_validTrial.size)).astype('bool')
+
+    if not t: 
+        t=np.arange(-0.1,1,t_bin)
+    else:
+        t=np.arange(t[0],t[1],t_bin)
+
+    if align_type:
+        if 'aud' in align_type:
+            align_time =  ev.timeline_audPeriodOn
+        elif 'laserOn' in align_type:
+            align_time = ev.timeline_laserOn_rampStart
+        elif 'blockLaserTime' in align_type:
+            align_time = ev.block_laserStartTimes
+        elif 'laserOff' in align_type:
+            align_time = ev.timeline_laserOff_rampEnd
+        elif 'vis' in align_type:
+            align_time = ev.timeline_visPeriodOn
+        elif 'choice' in align_type:
+            align_time = ev.timeline_choiceMoveOn
         else: 
-            print('more on off differences than expected...') 
-            break
+            align_time = ev.timeline_audPeriodOn        
 
+    # hacky way of normalising the values as they are atm in the accumulating format thoughout the session
+    #bl_subtracted_wheelValue = np.array([i - i[0] for i in ev.timeline_wheelValue])
 
+    raster = np.interp(align_time[selected_trials,np.newaxis]+t,
+                            np.concatenate(ev.timeline_wheelTime[selected_trials]),
+                            np.concatenate(ev.timeline_wheelValue[selected_trials]))
 
-    # getting rid of too short on-periods
-    is_sel =(off_times-on_times)>min_off_time
-    on_times, off_times = on_times[is_sel],off_times[is_sel]
-    # also getting rid of too short off periods
-    is_sel =(on_times[1:]-off_times[:-1])>min_on_time
+    if bl_subtract: 
+        zero_idx = np.argmin(np.abs(t))
+        bl = np.nanmean(raster[:,:zero_idx],axis=1)
+        bl = np.tile(bl[:,np.newaxis],t.size)
+        raster = raster - bl
 
-    if is_sel.size>0:
-        on_times, off_times = on_times[np.insert(is_sel,0,True)],off_times[np.insert(is_sel,-1,True)]
-
-    # digitis e the signal
-    digitised = np.concatenate([((camt>=on) & (camt<=off))[:,np.newaxis] for on,off in zip(on_times,off_times)],axis=1)
-    digitised  = np.sum(digitised,axis=1)
-
-    if plot_sample: 
-        st = 2500
-        en = 10500
-        _,ax = plt.subplots(1,1,figsize=(20,5))
-        plt.plot(camt[st:en],camv[st:en])
-        plt.plot(camt[st:en],camv_filt[st:en])
-        #plt.plot(camt[st:en],camv_thr[st:en])
-        plt.plot(camt[st:en],digitised[st:en]*np.max(k_clus.cluster_centers_)*1.1)
-
-    return (on_times,off_times,digitised)
-
+    return Bunch({'rasters': raster, 'tscale': t, 'cscale': selected_trials})
