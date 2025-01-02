@@ -2,7 +2,8 @@
 # bincount2D bins any data in 2 dimensions e.g. spikes+ clusters so used ot crease heatmaps
 
 import numpy as np
-from scipy.signal import convolve, gaussian
+from scipy.signal import convolve
+from scipy.signal.windows import gaussian
 from .io import Bunch
 
 def bincount2D(x, y, xbin=0, ybin=0, xlim=None, ylim=None, weights=None, xsmoothing=0):
