@@ -9,7 +9,7 @@ setup(
     packages=find_packages(where="src"),   # Automatically find packages in the "src" folder
     package_dir={'': 'src'},               # Define the source code directory
     install_requires=[                     # List of dependencies
-        'numpy>=1.19.2',
+        'numpy==1.26',
         'matplotlib>=3.3.0',
         'pyperclip>=1.9.0',
         'scipy', 
