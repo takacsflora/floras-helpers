@@ -16,10 +16,10 @@ import hashlib
 from tqdm import tqdm
 import nrrd
 
-import hashfile
+import floras_helpers.hist.hashfile as hashfile
 
-from src.floras_helpers.numerical import ismember
-from regions import BrainRegions
+from floras_helpers.numerical import ismember
+from floras_helpers.hist.regions import BrainRegions
 
 _logger = logging.getLogger(__name__)
 ALLEN_CCF_LANDMARKS_MLAPDV_UM = {'bregma': np.array([5739, 5400, 332])}

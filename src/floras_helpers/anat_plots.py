@@ -6,7 +6,7 @@ class anatomy_plotter():
 
     """
     def __init__(self): 
-        from hist.atlas import AllenAtlas
+        from .hist.atlas import AllenAtlas
         self.atlas = AllenAtlas(25)
 
     def plot_anat_canvas(self,ax,coord,axis='dv'):
