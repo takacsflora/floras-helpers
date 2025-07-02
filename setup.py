@@ -9,14 +9,14 @@ setup(
     packages=find_packages(where="src"),   # Automatically find packages in the "src" folder
     package_dir={'': 'src'},               # Define the source code directory
     install_requires=[                     # List of dependencies
-        'numpy==1.26',
-        'matplotlib>=3.3.0',
-        'pyperclip>=1.9.0',
+        'numpy',
+        'matplotlib',
+        'pyperclip',
         'scipy', 
         'scikit-learn',
         'pynrrd',
         'tqdm',
-        'pandas==1.3.5'
+        'pandas'
     ],
     include_package_data=True,
     classifiers=[                          # Optional metadata for PyPI
